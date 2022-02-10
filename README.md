@@ -38,9 +38,7 @@ https://f004.backblazeb2.com/file/pangenome/T2T/liftover/chm13_vs_grch38_wfmash_
 
 ## crude evaluation
 
-We can examine approximately what fraction of GRCh38 is covered by these alignments using BED files in this repo:
-
-We cover approximately 99.6% of GRCh38 with the 5kb segment length and >100% with the 1kb segment length (some regions of GRCh38 are mapped to by more than one region in CHM13).
+We can examine approximately what fraction of the non-simulated, non-N GRCh38 is covered by these alignments using BED files in this repo.
 
 ```
 -> % Rscript -e $(bedtools intersect -a <(zcat chm13_vs_grch38_wfmash_p90s5k_19a.paf.gz | awk '{ print $6, $8, $9 }' | tr ' ' '\t' | bedtools sort ) -b <(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed) | awk '{ sum += $3 - $2; } END { print sum }')'/'$(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed | bedtools subtract -a /dev/stdin -b grch38.fa.gz.Ns.bed | awk '{ sum += $3 - $2; } END { print sum }')
@@ -51,3 +49,5 @@ We cover approximately 99.6% of GRCh38 with the 5kb segment length and >100% wit
 -> % Rscript -e $(bedtools intersect -a <(zcat chm13_vs_grch38_wfmash_p90s1k_23a.paf.gz | awk '{ print $6, $8, $9 }' | tr ' ' '\t' | bedtools sort ) -b <(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed) | awk '{ sum += $3 - $2; } END { print sum }')'/'$(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed | bedtools subtract -a /dev/stdin -b grch38.fa.gz.Ns.bed | awk '{ sum += $3 - $2; } END { print sum }')
 [1] 1.016974
 ```
+
+We cover approximately 99.6% of GRCh38 with the 5kb segment length and >100% with the 1kb segment length (some regions of GRCh38 are mapped to by more than one region in CHM13).
