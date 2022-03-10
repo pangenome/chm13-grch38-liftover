@@ -4,8 +4,6 @@ This is an experimental liftover process designed as a counterpoint to methods b
 
 We use `wfmash` to generate the alignment, and `paf2chain` to convert it to a chain file.
 
-No filtering is done, and so the simulated regions of GRCh38 are likely to match CHM13 in unusual ways.
-
 We used `wfmash` version `a36ab5f`, with the specific guix build `/gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash`.
 
 ## using 5kb segments and 95% identity (wfmash defaults)
