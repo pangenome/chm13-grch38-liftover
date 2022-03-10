@@ -162,3 +162,5 @@ for s in 5k; do
     done
 done
 ```
+
+We shared the results of `-s 5k -l 25k -p 95` on Globus, at `/team-liftover/v1_wfmash/`.
