@@ -2,7 +2,7 @@
 
 This is an experimental liftover process designed as a counterpoint to methods based on minimap2.
 
-We use `wfmash` to generate the alignment, and `paf2chain` to convert it to a chain file.
+We use [wfmash](https://github.com/ekg/wfmash) to generate the alignment, and [paf2chain](https://github.com/AndreaGuarracino/paf2chain) to convert it to a chain file.
 
 We used `wfmash` version `a36ab5f`, with the specific guix build `/gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash`.
 
@@ -12,11 +12,13 @@ run_rustybam=/home/guarracino/tools/rustybam/target/release/rustybam
 run_paf2chain=/home/guarracino/tools/paf2chain/target/release/paf2chain-f68eecaade2f9a0c7adfb8baf822b5a5865594a0
 ```
 
-## aligning with 5 kb segments and 95% identity and exploring different block lengths (wfmash defaults are 5 kb segment length, 95% identity, and 25 kb block length)
+## aligning with 5 kb segments and 95% identity and exploring different block lengths
 
 GRCh38 onto CHM13 as a reference. First autosomes and X, then Y.
 
 ```shell
+# wfmash defaults are 5 kb segment length, 95% identity, and 25 kb block length
+
 for s in 5k; do   
     for x in 1 3 5; do
         s_no_k=${s::-1}
@@ -128,7 +130,7 @@ done
 
 ## quality inspection
 
-With `SafFire`:
+With [SafFire](https://github.com/mrvollger/SafFire):
 
 ```shell
 for s in 5k; do   
