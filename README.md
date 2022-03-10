@@ -6,6 +6,12 @@ We use `wfmash` to generate the alignment, and `paf2chain` to convert it to a ch
 
 We used `wfmash` version `a36ab5f`, with the specific guix build `/gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash`.
 
+```shell
+run_wfmash=/gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash
+run_rustybam=/home/guarracino/tools/rustybam/target/release/rustybam
+run_paf2chain=/home/guarracino/tools/paf2chain/target/release/paf2chain-f68eecaade2f9a0c7adfb8baf822b5a5865594a0
+```
+
 ## aligning with 5 kb segments and 95% identity and exploring different block lengths (wfmash defaults are 5 kb segment length, 95% identity, and 25 kb block length)
 
 GRCh38 onto CHM13 as a reference. First autosomes and X, then Y.
@@ -19,10 +25,10 @@ for s in 5k; do
           
         echo "-s $s -l $l"
         i=grch38_onto_chm13_autosome_X_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l};
-        sbatch -p workers -c 48 --wrap '\time -v /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s '$s' -l '$l' chm13v2.0_chr_auto_X.fasta GCA_000001405.15_GRCh38_no_alt_analysis_set_maskedGRC_exclusions_v2_maskedcentromeres_chr_auto_X.fasta >'$i.paf
+        sbatch -p workers -c 48 --wrap '\time -v '$run_wfmash' -t 48 -p 95 -s '$s' -l '$l' chm13v2.0_chr_auto_X.fasta GCA_000001405.15_GRCh38_no_alt_analysis_set_maskedGRC_exclusions_v2_maskedcentromeres_chr_auto_X.fasta >'$i.paf
             
         j=grch38_onto_chm13_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l};
-        sbatch -p workers -c 48 --wrap '\time -v /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s '$s' -l '$l' chm13v2.0_chrY.fasta chrY_maskedcentromeres.fa >'$j.paf
+        sbatch -p workers -c 48 --wrap '\time -v '$run_wfmash' -t 48 -p 95 -s '$s' -l '$l' chm13v2.0_chrY.fasta chrY_maskedcentromeres.fa >'$j.paf
     done
 done
 ```
@@ -39,10 +45,10 @@ for s in 5k; do
         echo "-s $s -l $l"
     
         i=chm13_onto_grch38_autosome_X_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l};
-        sbatch -p workers -c 48 --wrap '\time -v /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s '$s' -l '$l' GCA_000001405.15_GRCh38_no_alt_analysis_set_maskedGRC_exclusions_v2_maskedcentromeres_chr_auto_X.fasta chm13v2.0_chr_auto_X.fasta >'$i.paf
+        sbatch -p workers -c 48 --wrap '\time -v '$run_wfmash' -t 48 -p 95 -s '$s' -l '$l' GCA_000001405.15_GRCh38_no_alt_analysis_set_maskedGRC_exclusions_v2_maskedcentromeres_chr_auto_X.fasta chm13v2.0_chr_auto_X.fasta >'$i.paf
     
         j=chm13_onto_grch38_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l};
-        sbatch -p workers -c 48 --wrap '\time -v /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s '$s' -l '$l' chrY_maskedcentromeres.fa chm13v2.0_chrY.fasta >'$j.paf
+        sbatch -p workers -c 48 --wrap '\time -v '$run_wfmash' -t 48 -p 95 -s '$s' -l '$l' chrY_maskedcentromeres.fa chm13v2.0_chrY.fasta >'$j.paf
     done
 done
 ```
@@ -84,18 +90,18 @@ for s in 5k; do
         echo "-s $s -l $l"
     
         awk '$1==$6' grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.paf |\
-          /home/guarracino/tools/rustybam/target/release/rustybam break-paf --max-size 10000  |\
-          /home/guarracino/tools/rustybam/target/release/rustybam trim-paf -r |\
-          /home/guarracino/tools/rustybam/target/release/rustybam invert |\
-          /home/guarracino/tools/rustybam/target/release/rustybam trim-paf -r |\
-          /home/guarracino/tools/rustybam/target/release/rustybam invert > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf
+          $run_rustybam break-paf --max-size 10000  |\
+          $run_rustybam trim-paf -r |\
+          $run_rustybam invert |\
+          $run_rustybam trim-paf -r |\
+          $run_rustybam invert > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf
         
         awk '$1==$6' chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.paf |\
-          /home/guarracino/tools/rustybam/target/release/rustybam break-paf --max-size 10000  |\
-          /home/guarracino/tools/rustybam/target/release/rustybam trim-paf -r |\
-          /home/guarracino/tools/rustybam/target/release/rustybam invert |\
-          /home/guarracino/tools/rustybam/target/release/rustybam trim-paf -r |\
-          /home/guarracino/tools/rustybam/target/release/rustybam invert > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf
+          $run_rustybam break-paf --max-size 10000  |\
+          $run_rustybam trim-paf -r |\
+          $run_rustybam invert |\
+          $run_rustybam trim-paf -r |\
+          $run_rustybam invert > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf
     done
 done
 ```
@@ -113,8 +119,8 @@ for s in 5k; do
           
         echo "-s $s -l $l"
       
-        /home/guarracino/tools/paf2chain/target/release/paf2chain-f68eecaade2f9a0c7adfb8baf822b5a5865594a0 -i grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain
-        /home/guarracino/tools/paf2chain/target/release/paf2chain-f68eecaade2f9a0c7adfb8baf822b5a5865594a0 -i chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain
+        $run_paf2chain -i grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain
+        $run_paf2chain -i chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain
     done
 done
 ```
@@ -133,8 +139,8 @@ for s in 5k; do
           
         echo "-s $s -l $l"
     
-        /home/guarracino/tools/rustybam/target/release/rustybam stats grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf -p > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.stats
-        /home/guarracino/tools/rustybam/target/release/rustybam stats chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf -p > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.stats
+        $run_rustybam stats grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf -p > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.stats
+        $run_rustybam stats chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.paf -p > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.stats
     done
 done
 ```
