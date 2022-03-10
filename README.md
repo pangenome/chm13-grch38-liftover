@@ -6,48 +6,40 @@ We use `wfmash` to generate the alignment, and `paf2chain` to convert it to a ch
 
 No filtering is done, and so the simulated regions of GRCh38 are likely to match CHM13 in unusual ways.
 
-We used `wfmash` version `26ca311`, with the specific guix build `/gnu/store/8i0kwx7xk7liiw57ihi36n7n3i6k6sp6-wfmash-0.7.0+26ca311-4/bin/wfmash`.
+We used `wfmash` version `a36ab5f`, with the specific guix build `/gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash`.
 
-## using 5kb segments and 90% identity
+## using 5kb segments and 95% identity (wfmash defaults)
 
-```
-i=19a; sbatch -p workers -c 48 --wrap 'wfmash -t 48 -p 90 -s 5k grch38.fa.gz chm13.fa.gz >'$i.paf
-```
-
-## using 1kb segments and 90% identity
+GRCh38 onto CHM13 as a reference.
+First autosomes and X, then Y.
 
 ```
-i=23a; sbatch -p workers -c 48 --wrap 'wfmash -t 48 -p 90 -s 1k grch38.fa.gz chm13.fa.gz >'$i.paf
+i=grch38_onto_chm13_autosome_X_wfmash-0.7.0+a36ab5f_p95_s5k; sbatch -p workers -c 48 --wrap 'time /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s 5k chm13v2.0_chr_auto_X.fasta GCA_000001405.15_GRCh38_no_alt_analysis_set_maskedGRC_exclusions_v2_maskedcentromeres_chr_auto_X.fasta >'$i.paf
+i=grch38_onto_chm13_Y_wfmash-0.7.0+a36ab5f_p95_s5k; sbatch -p workers -c 48 --wrap 'time /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s 5k chm13v2.0_chrY.fasta chrY_maskedcentromeres.fa >'$i.paf
 ```
 
-## downloads
-
-Alignments in PAF format:
+Same but CHM13 as query and GRCh38 as reference.
 
 ```
-https://f004.backblazeb2.com/file/pangenome/T2T/liftover/chm13_vs_grch38_wfmash_p90s5k_19a.paf.gz
-https://f004.backblazeb2.com/file/pangenome/T2T/liftover/chm13_vs_grch38_wfmash_p90s1k_23a.paf.gz
+i=chm13_onto_grch38_autosome_X_wfmash-0.7.0+a36ab5f_p95_s5k; sbatch -p workers -c 48 --wrap 'time /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s 5k GCA_000001405.15_GRCh38_no_alt_analysis_set_maskedGRC_exclusions_v2_maskedcentromeres_chr_auto_X.fasta chm13v2.0_chr_auto_X.fasta >'$i.paf
+i=chm13_onto_grch38_Y_wfmash-0.7.0+a36ab5f_p95_s5k; sbatch -p workers -c 48 --wrap 'time /gnu/store/6h8zlg7kbiidsmin62bbg372in2l3wkb-wfmash-0.7.0+a36ab5f-24/bin/wfmash -t 48 -p 95 -s 5k chrY_maskedcentromeres.fa chm13v2.0_chrY.fasta >'$i.paf
 ```
 
-Chain files made by `paf2chain`:
+We then merged the two PAFs for each.
 
 ```
-https://f004.backblazeb2.com/file/pangenome/T2T/liftover/chm13_vs_grch38_wfmash_p90s5k_19a.chain.gz
-https://f004.backblazeb2.com/file/pangenome/T2T/liftover/chm13_vs_grch38_wfmash_p90s1k_23a.chain.gz
+cat grch38_onto_chm13_autosome_X_wfmash-0.7.0+a36ab5f_p95_s5k.paf grch38_onto_chm13_Y_wfmash-0.7.0+a36ab5f_p95_s5k.paf >grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s5k.paf
+cat chm13_onto_grch38_autosome_X_wfmash-0.7.0+a36ab5f_p95_s5k.paf chm13_onto_grch38_Y_wfmash-0.7.0+a36ab5f_p95_s5k.paf >chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s5k.paf
 ```
 
-## crude evaluation
+## filtering with rustybam
 
-We can examine approximately what fraction of the non-simulated, non-N GRCh38 is covered by these alignments using BED files in this repo.
-
-```
--> % Rscript -e $(bedtools intersect -a <(zcat chm13_vs_grch38_wfmash_p90s5k_19a.paf.gz | awk '{ print $6, $8, $9 }' | tr ' ' '\t' | bedtools sort ) -b <(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed) | awk '{ sum += $3 - $2; } END { print sum }')'/'$(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed | bedtools subtract -a /dev/stdin -b grch38.fa.gz.Ns.bed | awk '{ sum += $3 - $2; } END { print sum }')
-[1] 0.9957952
-```
+We apply a filtering strategy from Mitchell Vollger based on [rustybam](https://mrvollger.github.io/rustybam/).
+This forces same-chromosome mappings, and then breaks and trims the PAF to represent only 1:1 mappings.
 
 ```
--> % Rscript -e $(bedtools intersect -a <(zcat chm13_vs_grch38_wfmash_p90s1k_23a.paf.gz | awk '{ print $6, $8, $9 }' | tr ' ' '\t' | bedtools sort ) -b <(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed) | awk '{ sum += $3 - $2; } END { print sum }')'/'$(bedtools subtract -a grch38.fa.gz.fai.bed -b Modeled_regions_for_GRCh38.bed | bedtools subtract -a /dev/stdin -b grch38.fa.gz.Ns.bed | awk '{ sum += $3 - $2; } END { print sum }')
-[1] 1.016974
+awk '$1==$6' grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s5k.paf | rb break-paf --max-size 10000  | rb trim-paf -r | rb invert | rb trim-paf -r | rb invert > grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s5k.trim.paf
+awk '$1==$6' chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s5k.paf | rb break-paf --max-size 10000  | rb trim-paf -r | rb invert | rb trim-paf -r | rb invert > chm13_onto_grch38_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s5k.trim.paf
 ```
 
-We cover approximately 99.6% of GRCh38 with the 5kb segment length and >100% with the 1kb segment length (some regions of GRCh38 are mapped to by more than one region in CHM13).
+These files are included here, gzipped.
