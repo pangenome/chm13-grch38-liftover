@@ -1,4 +1,4 @@
-# wfmash based liftover of CHM13-T2T onto GRCh38
+# wfmash based liftover of GRCh38 onto CHM13
 
 This is an experimental liftover process designed as a counterpoint to methods based on minimap2.
 
