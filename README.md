@@ -184,9 +184,7 @@ for s in 5k; do
           
         echo "-s $s -l $l"
     
-        f=grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain
-        echo "$f"
-    
+        f=grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain  
         bash /lizardfs/guarracino/liftover/liftover_evaluation.sh $f "out_grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim"
     done
 done

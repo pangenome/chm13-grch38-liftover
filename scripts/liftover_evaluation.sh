@@ -20,18 +20,19 @@ bedtools intersect -f 1.0 -F 1.0 -a CHM13.combined.v4.unique.grch38.picard.sort.
 # count number of CHM13.combined.v4 (CAT/liftoff) intervals that exactly match gencodeV35 annotations when lifted to GRCh38:
 #
 # Original count of CHM13.combined.v4 intervals (in chm13v1.1)
-n=$(zgrep -v '#' /lizardfs/guarracino/liftover/data/CHM13.combined.v4.unique.bed.gz -c)
-echo -e "Total intervals in CHM13.combined.v4: $n"
-
+ntot=$(zgrep -v '#' /lizardfs/guarracino/liftover/data/CHM13.combined.v4.unique.bed.gz -c)
+echo -e "Total intervals in CHM13.combined.v4: $ntot"
 
 # Count of intervals that were unmappable
 echo "Unmappable intervals according to UCSC liftOver:"
 grep '#' CHM13.combined.v4.unique.grch38.ucsc.unmapped.bed | sort | uniq -c
 
 # Count of intervals that were successfully lifted
-n=$(wc -l CHM13.combined.v4.unique.grch38.ucsc.sort.bed | cut -f 1 -d ' ')
-echo -e "Intervals successfully created in chm13v2.0: $n"
+n1=$(wc -l CHM13.combined.v4.unique.grch38.ucsc.sort.bed | cut -f 1 -d ' ')
+ratio1=$(echo "scale=8; $n1/$ntot" | bc)
+echo -e "Intervals successfully created in chm13v2.0: $ratio1 ($n1 / $ntot)"
 
 # Count of intervals that lifted to intervals that match the (GRCh38) gencodeV35 intervals
-n=$(wc -l CHM13.combined.v4.unique.grch38.ucsc.ingencodeV35.bed | cut -f 1 -d ' ')
-echo -e "Lifted intervals which match the (chm13) CAT/liftoff intervals: $n"
+n2=$(wc -l CHM13.combined.v4.unique.grch38.ucsc.ingencodeV35.bed | cut -f 1 -d ' ')
+ratio2=$(echo "scale=4; $n2/$ntot" | bc)
+echo -e "Lifted intervals which match the (chm13) CAT/liftoff intervals: $ratio2 ($n2 / $ntot)"
