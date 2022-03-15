@@ -34,5 +34,5 @@ echo -e "Intervals successfully created in chm13v2.0: $ratio1 ($n1 / $ntot)"
 
 # Count of intervals that lifted to intervals that match the (GRCh38) gencodeV35 intervals
 n2=$(wc -l CHM13.combined.v4.unique.grch38.ucsc.ingencodeV35.bed | cut -f 1 -d ' ')
-ratio2=$(echo "scale=4; $n2/$ntot" | bc)
+ratio2=$(echo "scale=8; $n2/$ntot" | bc)
 echo -e "Lifted intervals which match the (chm13) CAT/liftoff intervals: $ratio2 ($n2 / $ntot)"
