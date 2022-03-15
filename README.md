@@ -127,6 +127,8 @@ for s in 5k; do
 done
 ```
 
+We shared the results of `-s 5k -l 25k -p 95` on Globus, at `/team-liftover/v1_wfmash/`.
+
 
 ## quality inspection
 
@@ -171,4 +173,21 @@ for s in 5k; do
 done
 ```
 
-We shared the results of `-s 5k -l 25k -p 95` on Globus, at `/team-liftover/v1_wfmash/`.
+Liftover evaluation (grch38_onto_chm13):
+
+```shell
+for s in 5k; do   
+    for x in 1 3 5; do
+        s_no_k=${s::-1}
+        l_no_k=$(echo $s_no_k '*' $x | bc)
+        l=${l_no_k}k
+          
+        echo "-s $s -l $l"
+    
+        f=grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim.chain
+        echo "$f"
+    
+        bash /lizardfs/guarracino/liftover/liftover_evaluation.sh $f "out_grch38_onto_chm13_autosome_X_Y_wfmash-0.7.0+a36ab5f_p95_s${s}_l${l}.trim"
+    done
+done
+```
